@@ -46,7 +46,7 @@ def load_schedule_data(file_path):
 
 # --- 2. 프로그램 화면 및 교체 추천 알고리즘 ---
 st.set_page_config(page_title="수업 교체 도우미", layout="wide")
-st.title("🔄 학교 시간표 교체 & 맞교환 추천 시스템")
+st.title("🔄 학교 시간표 교체 추천 시스템")
 st.markdown("전일 출장, 반일 연가 등 **여러 개의 수업을 한 번에** 선택하고 교체 가능한 선생님을 확인하세요.")
 
 # --- 💡 추가된 기능: 사이드바 양식 다운로드 ---
