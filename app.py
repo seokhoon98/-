@@ -46,10 +46,29 @@ def load_schedule_data(file_path):
 
 # --- 2. 프로그램 화면 및 교체 추천 알고리즘 ---
 st.set_page_config(page_title="수업 교체 도우미", layout="wide")
-st.title("🔄 다중 수업 교체 추천 시스템")
+st.title("🔄 학교 시간표 교체 & 맞교환 추천 시스템")
 st.markdown("전일 출장, 반일 연가 등 **여러 개의 수업을 한 번에** 선택하고 교체 가능한 선생님을 확인하세요.")
 
-uploaded_file = st.file_uploader("시간표 엑셀 파일을 업로드하세요", type=['xlsx'])
+# --- 💡 추가된 기능: 사이드바 양식 다운로드 ---
+st.sidebar.markdown("### 📥 타학교 공통 양식")
+st.sidebar.caption("우리 학교 선생님이 아니신가요? 아래 표준 양식을 다운받아 학교 시간표를 붙여넣은 뒤 업로드해보세요.")
+
+try:
+    with open("template.xlsx", "rb") as file:
+        st.sidebar.download_button(
+            label="엑셀 표준 양식 다운로드 (.xlsx)",
+            data=file,
+            file_name="수업교체_표준양식.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            type="primary"
+        )
+except FileNotFoundError:
+    st.sidebar.info("개발자 안내: 깃허브에 'template.xlsx' 파일을 함께 업로드해주세요.")
+
+st.sidebar.divider()
+
+# 메인 기능
+uploaded_file = st.file_uploader("시간표 엑셀 파일을 업로드하세요 (표준 양식 준수)", type=['xlsx'])
 
 if uploaded_file:
     df = load_schedule_data(uploaded_file)
@@ -67,13 +86,11 @@ if uploaded_file:
         if len(periods_available) == 0:
             st.sidebar.warning("해당 요일에는 배정된 수업이 없습니다.")
         else:
-            # 💡 추가된 기능: 빠른 선택 라디오 버튼
             quick_select = st.sidebar.radio(
-                "⏱️ 빠른 선택 (자동 체크)", 
+                "⏱️ 빠른 선택", 
                 ["직접 선택", "전일 출장 (전체)", "오전 반가 (1~4교시)", "오후 반가 (5교시~)"]
             )
             
-            # 라디오 버튼 선택에 따른 기본값 세팅
             if quick_select == "전일 출장 (전체)":
                 default_periods = periods_available
             elif quick_select == "오전 반가 (1~4교시)":
@@ -83,27 +100,24 @@ if uploaded_file:
             else:
                 default_periods = []
 
-            # 💡 다중 선택 체크박스 (여러 개 선택 가능)
             target_periods = st.sidebar.multiselect(
                 "결강 교시 (여러 개 선택 가능)", 
                 periods_available, 
                 default=default_periods
             )
             
-            if st.sidebar.button("결과 한눈에 보기", type="primary"):
+            if st.sidebar.button("결과 한눈에 보기"):
                 if not target_periods:
                     st.warning("결강 교시를 하나 이상 선택해 주세요.")
                 else:
                     st.subheader(f"📅 {target_teacher} 선생님의 {target_day}요일 출장/연가 대강표")
                     st.divider()
                     
-                    # 💡 선택한 각 교시별로 반복(Loop)하여 결과 출력
                     for period in sorted(target_periods):
                         target_class_info = teacher_schedule[(teacher_schedule['요일'] == target_day) & (teacher_schedule['교시'] == period)].iloc[0]
                         target_class_name = target_class_info['학급']
                         subject_name = target_class_info['과목']
                         
-                        # 💡 아코디언(Expander) 방식으로 교시별 묶어서 보여주기
                         with st.expander(f"📌 [ {period}교시 ] {subject_name} ({target_class_name})", expanded=True):
                             
                             busy_teachers = df[(df['요일'] == target_day) & (df['교시'] == period)]['교사명'].unique()
@@ -115,7 +129,7 @@ if uploaded_file:
                                 possible_swaps = []
                                 
                                 for _, row in free_t_schedule.iterrows():
-                                    if row['학급'] == target_class_name: # 동일 반 맞교환 확인
+                                    if row['학급'] == target_class_name: 
                                         day_b = row['요일']
                                         period_b = row['교시']
                                         
@@ -129,7 +143,6 @@ if uploaded_file:
                                         f"맞교환 (추후 들어갈 시간)": " / ".join(possible_swaps)
                                     })
                             
-                            # 화면 좌우 분할 배치
                             col1, col2 = st.columns([1.5, 1])
                             
                             with col1:
