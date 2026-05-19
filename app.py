@@ -94,10 +94,10 @@ def parse_smart_schedule(df_raw, start_row, teacher_col, rows_per_teacher, day_m
 
 # --- 3. 프로그램 화면 UI ---
 st.set_page_config(page_title="수업 교체 도우미", layout="wide")
-st.title("🔄 학교 수업 교체 추천 시스템 ")
-st.markdown("학교의 시간표를 업로드 하세요. AI가 엑셀 구조를 스스로 파악합니다.")
+st.title(" 학교 수업 교체 추천 시스템 ")
+st.markdown(" 학교의 시간표를 업로드 하세요. AI가 엑셀 구조를 스스로 파악합니다. ")
 
-uploaded_file = st.file_uploader("학교 시간표 엑셀 파일을 업로드하세요", type=['xlsx'])
+uploaded_file = st.file_uploader(" 학교 시간표 엑셀 파일을 업로드하세요 ", type=['xlsx'])
 
 if uploaded_file:
     df_raw = pd.read_excel(uploaded_file, sheet_name=0, header=None)
@@ -109,16 +109,16 @@ if uploaded_file:
         st.error(f"엑셀 파일을 분석할 수 없습니다. 사유: {msg}")
     else:
         # --- 스캐너 분석 결과 및 설정 영역 ---
-        with st.expander("🤖 AI 엑셀 스캐너 분석 결과 (수정 가능)", expanded=True):
+        with st.expander(" AI 엑셀 스캐너 분석 결과 (오류발생 시 수정)", expanded=True):
             col1, col2 = st.columns([1, 1])
             
             with col1:
-                st.success("✅ 시간표 기본 구조를 성공적으로 찾았습니다!")
+                st.success(" 시간표 기본 구조를 성공적으로 찾았습니다! ")
                 for day, cols in day_mapping.items():
                     st.write(f"- **{day}요일:** 총 {len(cols)}교시 발견")
             
             with col2:
-                st.info("⚠️ 학교마다 서식이 다르므로 아래 내용을 맞게 설정해 주세요.")
+                st.info(" 학교마다 서식이 다르므로 아래 내용을 맞게 설정해 주세요.(정상작동 시 수정X) ")
                 start_row = st.number_input("1️⃣ 첫 번째 선생님의 데이터가 시작되는 줄(Row)", value=day_row_idx + 2, min_value=0)
                 teacher_col = st.number_input("2️⃣ 선생님 이름이 적혀있는 열(Column, A열=0, B열=1)", value=1, min_value=0)
                 
@@ -197,5 +197,5 @@ if uploaded_file:
                                         else:
                                             st.info("맞교환 가능한 선생님이 없습니다.")
                                     with col2:
-                                        st.markdown(f"**🥈 2순위: 단순 대강 (총 {len(free_teachers)}명)**")
+                                        st.markdown(f"**🥈 2순위: 단순 보강 (총 {len(free_teachers)}명)**")
                                         st.success(", ".join(free_teachers))
