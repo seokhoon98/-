@@ -93,9 +93,9 @@ def parse_smart_schedule(df_raw, start_row, teacher_col, rows_per_teacher, day_m
 
 
 # --- 3. 프로그램 화면 UI ---
-st.set_page_config(page_title="전국 단위 수업 교체 도우미", layout="wide")
-st.title("🔄 학교 수업 맞교환 추천 시스템 (AI 스캐너 탑재)")
-st.markdown("전국 어느 학교의 시간표든 업로드만 하세요. AI가 엑셀 구조를 스스로 파악합니다.")
+st.set_page_config(page_title="수업 교체 도우미", layout="wide")
+st.title("🔄 학교 수업 교체 추천 시스템 ")
+st.markdown("학교의 시간표를 업로드 하세요. AI가 엑셀 구조를 스스로 파악합니다.")
 
 uploaded_file = st.file_uploader("학교 시간표 엑셀 파일을 업로드하세요", type=['xlsx'])
 
