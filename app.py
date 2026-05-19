@@ -187,15 +187,15 @@ if uploaded_file:
                                                     possible_swaps.append(f"{day_b} {period_b}교시")
                                         
                                         if possible_swaps:
-                                            swap_results.append({"교사명": free_t, f"맞교환 (추후 들어갈 시간)": " / ".join(possible_swaps)})
+                                            swap_results.append({"교사명": free_t, f"교체 (추후 들어갈 시간)": " / ".join(possible_swaps)})
                                     
                                     col1, col2 = st.columns([1.5, 1])
                                     with col1:
-                                        st.markdown(f"**🥇 1순위: '{target_class_name}' 맞교환 가능**")
+                                        st.markdown(f"**🥇 1순위: '{target_class_name}' 교체 가능**")
                                         if swap_results:
                                             st.dataframe(pd.DataFrame(swap_results), hide_index=True, use_container_width=True)
                                         else:
-                                            st.info("맞교환 가능한 선생님이 없습니다.")
+                                            st.info("교체 가능한 선생님이 없습니다.")
                                     with col2:
                                         st.markdown(f"**🥈 2순위: 단순 보강 (총 {len(free_teachers)}명)**")
                                         st.success(", ".join(free_teachers))
