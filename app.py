@@ -164,7 +164,7 @@ if uploaded_file:
                         if not target_periods:
                             st.warning("결강 교시를 하나 이상 선택해 주세요.")
                         else:
-                            st.subheader(f"📅 {target_teacher} 선생님의 {target_day}요일 출장/연가 대강표")
+                            st.subheader(f"📅 {target_teacher} 선생님의 {target_day}요일 출장/연가 보강표")
                             for period in sorted(target_periods):
                                 target_class_info = teacher_schedule[(teacher_schedule['요일'] == target_day) & (teacher_schedule['교시'] == period)].iloc[0]
                                 target_class_name = target_class_info['학급']
