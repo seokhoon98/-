@@ -2,6 +2,17 @@ import pandas as pd
 import streamlit as st
 import re
 
+# --- 학교 일과 시간표 세팅 (수정 가능) ---
+CLASS_TIMES = {
+    1: "08:50~09:40",
+    2: "09:50~10:40",
+    3: "10:50~11:40",
+    4: "11:50~12:40",
+    5: "13:40~14:30",
+    6: "14:40~15:30",
+    7: "15:40~16:30"
+}
+
 # --- 1. AI 엑셀 구조 자동 탐지 함수 ---
 @st.cache_data
 def find_excel_structure(df_raw):
@@ -45,7 +56,6 @@ def find_excel_structure(df_raw):
 @st.cache_data
 def parse_smart_schedule(df_raw, start_row, teacher_col, rows_per_teacher, day_mapping, data_type):
     parsed_data = []
-    
     for i in range(start_row, len(df_raw), rows_per_teacher):
         if i >= len(df_raw): break
         
@@ -79,8 +89,8 @@ def parse_smart_schedule(df_raw, start_row, teacher_col, rows_per_teacher, day_m
 
     return pd.DataFrame(parsed_data)
 
-# --- 3. 공강 시간(출장 추천) 분석 함수 ---
-def find_best_trip_time(teacher_schedule, day_mapping):
+# --- 3. 요일별 전체 공강(빈 시간) 분석 함수 ---
+def find_all_free_times(teacher_schedule, day_mapping):
     recommendations = []
     days = ['월', '화', '수', '목', '금']
     
@@ -89,38 +99,28 @@ def find_best_trip_time(teacher_schedule, day_mapping):
         total_periods = len(day_mapping[day])
         busy_periods = teacher_schedule[teacher_schedule['요일'] == day]['교시'].tolist()
         
-        # 수업이 아예 없는 날
         if not busy_periods:
-            recommendations.append({"요일": day, "추천 시간": "✨ 하루 전체 (전일 출장/연가 가능)"})
+            recommendations.append({"요일": day, "빈 시간": "✨ 하루 전체 (전일 공강)"})
             continue
             
-        # 연속된 공강 찾기
         free_periods = [p for p in range(1, total_periods + 1) if p not in busy_periods]
         
         if free_periods:
-            # 공강을 연속된 덩어리로 묶기 (예: [1,2, 4,5,6] -> [[1,2], [4,5,6]])
-            blocks = []
-            current_block = [free_periods[0]]
-            for p in free_periods[1:]:
-                if p == current_block[-1] + 1:
-                    current_block.append(p)
+            time_strings = []
+            for p in free_periods:
+                time_txt = CLASS_TIMES.get(p, "")
+                if time_txt:
+                    time_strings.append(f"{p}교시 ({time_txt})")
                 else:
-                    blocks.append(current_block)
-                    current_block = [p]
-            blocks.append(current_block)
+                    time_strings.append(f"{p}교시")
             
-            # 3시간 이상 연속된 공강만 추천
-            long_blocks = [b for b in blocks if len(b) >= 3]
-            if long_blocks:
-                for b in long_blocks:
-                    recommendations.append({"요일": day, "추천 시간": f"🕒 {b[0]}교시 ~ {b[-1]}교시 (총 {len(b)}시간 연속)"})
+            recommendations.append({"요일": day, "빈 시간": ", ".join(time_strings)})
 
     return pd.DataFrame(recommendations)
 
-
 # --- 4. 프로그램 화면 UI ---
-st.set_page_config(page_title="전국 단위 수업 교체 도우미", layout="wide")
-st.title("🔄 수업 교체 & 출장 시간 추천 시스템")
+st.set_page_config(page_title="수업 교체 & 출장 도우미", layout="wide")
+st.title("🔄 전국 공통: 수업 교체 & 출장 공강 확인 시스템")
 
 uploaded_file = st.file_uploader("학교 시간표 엑셀 파일을 업로드하세요", type=['xlsx'])
 
@@ -153,27 +153,26 @@ if uploaded_file:
             teacher_schedule = df[df['교사명'] == target_teacher]
             
             if not teacher_schedule.empty:
-                # --- 💡 신규 기능: 수업 교체 없는 출장 시간 찾기 ---
+                # --- 💡 공강 시간 찾기 ---
                 st.sidebar.divider()
-                st.sidebar.markdown("### ✈️ 출장/연가 추천")
-                st.sidebar.caption("수업을 교체할 필요 없이, 가장 길게 비어있는 시간을 찾아줍니다.")
+                st.sidebar.markdown("### ✈️ 수업 없는 시간 확인")
+                st.sidebar.caption("요일별로 수업이 없는 모든 시간(공강)을 보여줍니다.")
                 
-                if st.sidebar.button("수업 교체 없이 가능한 시간 보기", type="primary", use_container_width=True):
-                    st.subheader(f"💡 {target_teacher} 선생님의 수업 교체 없는 출장 추천 시간")
-                    st.markdown("전일 공강이거나, **3시간 이상 연속으로 빈 시간**만 추천합니다.")
+                if st.sidebar.button("요일별 빈 시간 전체 보기", type="primary", use_container_width=True):
+                    st.subheader(f"💡 {target_teacher} 선생님의 요일별 공강(출장 가능) 시간표")
                     st.divider()
                     
-                    rec_df = find_best_trip_time(teacher_schedule, day_mapping)
+                    rec_df = find_all_free_times(teacher_schedule, day_mapping)
                     if not rec_df.empty:
                         st.dataframe(rec_df, hide_index=True, use_container_width=True)
                     else:
-                        st.info("현재 3시간 이상 연속된 공강(빈 시간)이 없습니다. 아래의 '수업 교체' 기능을 이용해 보세요.")
+                        st.info("현재 수업이 없는 빈 시간(공강)이 전혀 없습니다. (풀타임 수업 중이십니다.)")
                     
-                    st.stop() # 추천 시간을 보여주면 아래의 교체 로직은 실행하지 않고 멈춤
+                    st.stop()
 
-                # --- 기존 로직: 수업 교체 찾기 ---
+                # --- 💡 수업 교체/보강 선생님 찾기 ---
                 st.sidebar.divider()
-                st.sidebar.markdown("### 🔄 수업 교체 찾기")
+                st.sidebar.markdown("### 🔄 수업 교체 선생님 찾기")
                 target_day = st.sidebar.selectbox("결강 요일", ['월', '화', '수', '목', '금'])
                 periods_available = sorted(teacher_schedule[teacher_schedule['요일'] == target_day]['교시'].unique())
                 
