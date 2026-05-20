@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import re
 
-# --- 학교 일과 시간표 세팅 (수정 가능) ---
+# --- 학교 일과 시간표 세팅 ---
 CLASS_TIMES = {
     1: "08:50~09:40",
     2: "09:50~10:40",
@@ -120,7 +120,7 @@ def find_all_free_times(teacher_schedule, day_mapping):
 
 # --- 4. 프로그램 화면 UI ---
 st.set_page_config(page_title="수업 교체 & 출장 도우미", layout="wide")
-st.title("🔄 수업 교체 & 출장 공강 확인 시스템")
+st.title("🔄 전국 공통: 수업 교체 & 출장 공강 확인 시스템")
 
 uploaded_file = st.file_uploader("학교 시간표 엑셀 파일을 업로드하세요", type=['xlsx'])
 
@@ -168,7 +168,7 @@ if uploaded_file:
                     else:
                         st.info("현재 수업이 없는 빈 시간(공강)이 전혀 없습니다. (풀타임 수업 중이십니다.)")
                     
-                    st.stop()
+                    # (수정됨) 아래의 st.stop()을 제거하여 사이드바가 끝까지 렌더링되게 만들었습니다!
 
                 # --- 💡 수업 교체/보강 선생님 찾기 ---
                 st.sidebar.divider()
