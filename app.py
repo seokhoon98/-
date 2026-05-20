@@ -120,7 +120,7 @@ def find_all_free_times(teacher_schedule, day_mapping):
 
 # --- 4. 프로그램 화면 UI ---
 st.set_page_config(page_title="수업 교체 & 출장 도우미", layout="wide")
-st.title("🔄 전국 공통: 수업 교체 & 출장 공강 확인 시스템")
+st.title("🔄 수업 교체 시스템")
 
 uploaded_file = st.file_uploader("학교 시간표 엑셀 파일을 업로드하세요", type=['xlsx'])
 
