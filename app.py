@@ -1,3 +1,27 @@
+import streamlit as st
+import urllib.request
+import threading
+import time
+
+# [수정] 선생님의 실제 스트림릿 주소를 입력하세요
+APP_URL = "https://hlagxbfhomzhzujw6ovygp.streamlit.app/"
+
+def keep_alive():
+    while True:
+        try:
+            # 30분(1800초)마다 내 앱 주소로 조용히 접속 요청을 보냅니다.
+            urllib.request.urlopen(APP_URL)
+            print("앱 깨우기 완료!")
+        except Exception as e:
+            print(f"깨우기 실패: {e}")
+        time.sleep(1800) 
+
+# 프로그램이 처음 켜질 때, 백그라운드에서 깨우기 타이머를 따로 돌립니다.
+if "alive_thread" not in st.session_state:
+    st.session_state.alive_thread = True
+    t = threading.Thread(target=keep_alive, daemon=True)
+    t.start()
+
 import pandas as pd
 import streamlit as st
 import re
